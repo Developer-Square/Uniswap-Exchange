@@ -1,22 +1,42 @@
+import { formatUnits } from 'ethers/lib/utils';
 import React, { useState, useEffect, useRef } from 'react';
 
 import { chevronDown } from '../assets';
 import styles from '../styles';
-import { useOnClickOutside } from '../utils';
+import { useAmountsOut, useOnClickOutside } from '../utils';
 
-const AmountOut = () => {
+const AmountOut = ({
+  fromToken,
+  toToken,
+  amountIn,
+  pairContract,
+  currencyValue,
+  onSelect,
+  currencies,
+}) => {
   const [showList, setShowList] = useState(false);
   const [activeCurrency, setActiveCurrency] = useState('Select');
   const ref = useRef();
 
   useOnClickOutside(ref, () => setShowList(false));
 
+  const amountOut =
+    useAmountsOut(pairContract, amountIn, fromToken, toToken) ?? 0;
+
+  useEffect(() => {
+    if (Object.keys(currencies).includes(currencyValue)) {
+      setActiveCurrency(currencies[currencyValue]);
+    } else {
+      setActiveCurrency('Select');
+    }
+  }, [currencyValue, currencies]);
+
   return (
     <div className={styles.amountContainer}>
       <input
         placeholder='0.0'
         type='number'
-        value=''
+        value={formatUnits(amountOut)}
         disabled
         className={styles.amountInput}
       />
@@ -26,7 +46,7 @@ const AmountOut = () => {
         onClick={() => setShowList((prevState) => !prevState)}
       >
         <button className={styles.currencyButton}>
-          {'ETH'}
+          {activeCurrency}
           <img
             src={chevronDown}
             alt='chevron down'
@@ -37,16 +57,18 @@ const AmountOut = () => {
         </button>
 
         {showList ? (
-          <ul className={styles.currencyList}>
-            {[
-              { token: 'ETH', tokenName: 'ETH' },
-              { token: 'ONEP', tokenName: 'OnePieceCoins' },
-            ].map(({ token, tokenName }, index) => (
+          <ul ref={ref} className={styles.currencyList}>
+            {Object.entries(currencies).map(([token, tokenName], index) => (
               <li
                 key={index}
-                className={`${styles.currencyListItem} ${
-                  true ? 'bg-site-dim2' : ''
-                }`}
+                className={styles.currencyListItem}
+                onClick={() => {
+                  if (typeof onSelect === 'function') {
+                    onSelect(token);
+                    setActiveCurrency(tokenName);
+                    setShowList(false);
+                  }
+                }}
               >
                 {tokenName}
               </li>

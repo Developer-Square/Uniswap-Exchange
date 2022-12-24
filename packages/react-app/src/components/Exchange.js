@@ -168,8 +168,11 @@ const Exchange = ({ pools }) => {
             canSwap ? 'bg-site-pink text-white' : 'bg-site-dim2 text-site-dim2'
           } ${styles.actionButton}`}
         >
-          {isSwapping ? 'Swapping...' : ''}
-          {hasEnoughBalance ? 'Swap' : 'Insufficient Balance'}
+          {isSwapping
+            ? 'Swapping...'
+            : hasEnoughBalance
+            ? 'Swap'
+            : 'Insufficient Balance'}
         </button>
       )}
 
